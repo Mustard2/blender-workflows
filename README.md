@@ -1,6 +1,6 @@
 # GitHub CI Workflows for Blender Extensions
 
-Collection of workflows that can be used on Blender Extensions repositories.
+Collection of Reusable Workflows that can be used on Blender Extensions repositories.
 
 
 ## Workflows available
