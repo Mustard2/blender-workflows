@@ -35,7 +35,7 @@ on:
 
 jobs:
   blender:
-    uses: Mustard2/blender-workflows/.github/workflows/blender-build.yml@main
+    uses: Mustard2/blender-workflows/.github/workflows/blender-build.yml@v1
     with:
       timeout-seconds: 180
       # Uncomment to specify a Blender version different from the latest
@@ -43,3 +43,7 @@ jobs:
 ```
 
 - If the Extension builds correctly, an artifacts is uploaded which can be reviewed and downloaded in the Workflow Summary.
+
+## Update the Workflow version
+
+When an updated version of the workflow is available, update the tag `v1` with the appropriate version.
