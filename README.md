@@ -5,7 +5,9 @@ Collection of workflows that can be used on Blender Extensions repositories.
 
 ## Workflows available
 
-- **Build the Extension** with Blender and generate the file that can be directly uploaded to the Blender Extension website or shared with users.
+The workflows available are the following, with their path to add to your workflow file.
+
+- [**Build the Extension**](.github/workflows/blender-build.yml) with Blender and generate the file that can be directly uploaded to the Blender Extension website or shared with users.
 
 ```
 .github/workflows/blender-build.yml
@@ -14,7 +16,7 @@ Collection of workflows that can be used on Blender Extensions repositories.
 
 ## How to Use
 
-- Create a new file in your repository called
+- Create a new file in your repository to run the workflow in the workflows folder. For instance:
 
 ```
 .github/workflows/blender-build.yml
