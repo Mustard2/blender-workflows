@@ -6,7 +6,12 @@ on:
       timeout-seconds:
         required: false
         type: number
-        default: 120
+        default: 600
+      blender-version:
+        required: false
+        type: string
+        description: "Exact Blender version (e.g. 5.0.1). If not set, latest is used."
+
     outputs:
       artifact-name:
         description: "Built extension artifact name"
@@ -23,38 +28,81 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get latest Blender version
+      # -----------------------------
+      # Resolve Blender version
+      # -----------------------------
+      - name: Determine Blender version
+        id: blender_version
         run: |
-          LATEST=$(curl -s https://download.blender.org/release/ \
-            | grep -Eo 'Blender[0-9]+\.[0-9]+' \
-            | sort -V \
-            | tail -n1)
-          echo "LATEST=$LATEST" >> $GITHUB_ENV
+          if [ -n "${{ inputs.blender-version }}" ]; then
+            echo "Using provided Blender version: ${{ inputs.blender-version }}"
+            echo "VERSION=${{ inputs.blender-version }}" >> $GITHUB_OUTPUT
+          else
+            echo "Fetching latest Blender version..."
+            LATEST=$(curl -s https://download.blender.org/release/ \
+              | grep -Eo 'Blender[0-9]+\.[0-9]+' \
+              | sort -V \
+              | tail -n1)
 
+            VERSION=$(curl -s https://download.blender.org/release/$LATEST/ \
+              | grep -Eo 'blender-[0-9]+\.[0-9]+\.[0-9]+' \
+              | cut -d '-' -f2 \
+              | sort -V \
+              | tail -n1)
+
+            echo "Resolved latest Blender version: $VERSION"
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      # -----------------------------
+      # Cache Blender
+      # -----------------------------
+      - name: Cache Blender
+        id: cache-blender
+        uses: actions/cache@v4
+        with:
+          path: blender
+          key: blender-${{ steps.blender_version.outputs.VERSION }}
+
+      # -----------------------------
+      # Download Blender (if not cached)
+      # -----------------------------
       - name: Download and extract Blender
+        if: steps.cache-blender.outputs.cache-hit != 'true'
         run: |
+          VERSION=${{ steps.blender_version.outputs.VERSION }}
+          MAJOR_MINOR=$(echo $VERSION | cut -d '.' -f1,2)
+
+          URL="https://download.blender.org/release/Blender$MAJOR_MINOR/blender-$VERSION-linux-x64.tar.xz"
+
+          echo "Downloading Blender from: $URL"
+
           mkdir -p blender_download
-          VERSION_FILE=$(curl -s https://download.blender.org/release/$LATEST/ \
-            | grep -Eo 'blender-[0-9]+\.[0-9]+\.[0-9]+-linux-x64.tar.xz' \
-            | sort -V \
-            | tail -n1)
-          wget -O blender_download/$VERSION_FILE https://download.blender.org/release/$LATEST/$VERSION_FILE
+          wget -O blender_download/blender.tar.xz $URL
+
           mkdir blender
-          tar -xf blender_download/$VERSION_FILE -C blender --strip-components=1
+          tar -xf blender_download/blender.tar.xz -C blender --strip-components=1
 
       - name: Verify Blender
         run: blender/blender --version
 
+      # -----------------------------
+      # Prepare build folder
+      # -----------------------------
       - name: Prepare build folder
         run: |
           mkdir build
           shopt -s extglob
           cp -r !("blender"|"blender_download"|"build") build/
 
+      # -----------------------------
+      # Build extension
+      # -----------------------------
       - name: Build extension
         run: |
           set -e
           cd build
+
           echo "🚀 Running Blender build..."
           timeout ${{ inputs.timeout-seconds }}s ../blender/blender --background --command extension build || true
 
@@ -74,6 +122,9 @@ jobs:
           echo "ARCHIVE=$(realpath "$FILE")" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=$(basename "$FILE")" >> $GITHUB_ENV
 
+      # -----------------------------
+      # Install and enable extension
+      # -----------------------------
       - name: Install and enable extension
         run: |
           EXT_ID=$(grep '^id' blender_manifest.toml | cut -d '"' -f2)
@@ -85,11 +136,17 @@ jobs:
           BLENDER_PATH="$GITHUB_WORKSPACE/blender/blender"
           $BLENDER_PATH --background --command extension install-file -r user -e "$ARCHIVE"
 
+      # -----------------------------
+      # Export outputs
+      # -----------------------------
       - name: Export outputs
         id: export
         run: |
           echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
 
+      # -----------------------------
+      # Upload artifact
+      # -----------------------------
       - name: Upload extension artifact
         uses: actions/upload-artifact@v4
         with:
