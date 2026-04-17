@@ -44,6 +44,27 @@ jobs:
 
 - If the Extension builds correctly, an artifacts is uploaded which can be reviewed and downloaded in the Workflow Summary.
 
+
+## Testing multiple versions
+
+To test more Blender versions at the same time, `strategy: matrix` can be used. For instance
+
+```yml
+jobs:
+  blender:
+    strategy:
+      matrix:
+        blender: [ "5.1.0", "4.2.0" ]
+
+    name: Blender ${{ matrix.blender }}
+    needs: lint
+    uses: Mustard2/blender-workflows/.github/workflows/blender-build.yml@v2
+    with:
+      timeout-seconds: 180
+      blender-version: ${{ matrix.blender }}
+```
+
+
 ## Update the Workflow version
 
 When an updated version of the workflow is available, update the tag `v1` with the appropriate version.
