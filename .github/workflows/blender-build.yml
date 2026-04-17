@@ -19,6 +19,8 @@ on:
 
 jobs:
   build:
+    name: Build & Test Installation
+    
     runs-on: ubuntu-latest
 
     outputs:
