@@ -35,7 +35,7 @@ on:
 
 jobs:
   blender:
-    uses: Mustard2/blender-workflows/.github/workflows/blender-build.yml@v1
+    uses: Mustard2/blender-workflows/.github/workflows/blender-build.yml@v2
     with:
       timeout-seconds: 180
       # Uncomment to specify a Blender version different from the latest
