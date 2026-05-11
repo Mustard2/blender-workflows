@@ -123,6 +123,12 @@ jobs:
 
           echo "ARCHIVE=$(realpath "$FILE")" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=$(basename "$FILE")" >> $GITHUB_ENV
+          BASE_NAME=$(basename "$FILE" .zip)
+          VERSION=${{ steps.blender_version.outputs.VERSION }}
+          VERSIONED_NAME="${BASE_NAME}-blender-${VERSION}.zip"
+          mv "$FILE" "$VERSIONED_NAME"
+          echo "ARCHIVE=$(realpath "$VERSIONED_NAME")" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=$VERSIONED_NAME" >> $GITHUB_ENV
 
       # -----------------------------
       # Install and enable extension
