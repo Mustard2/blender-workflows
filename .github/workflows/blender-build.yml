@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # -----------------------------
       # Resolve Blender version
@@ -61,7 +61,7 @@ jobs:
       # -----------------------------
       - name: Cache Blender
         id: cache-blender
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: blender
           key: blender-${{ steps.blender_version.outputs.VERSION }}
@@ -156,7 +156,7 @@ jobs:
       # Upload artifact
       # -----------------------------
       - name: Upload extension artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.ARCHIVE }}
